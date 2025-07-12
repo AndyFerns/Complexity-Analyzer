@@ -35,6 +35,11 @@ class ComplexityAnalyzer(ast.NodeVisitor):
         self.line_complexities = {}  # Dict[line_no] = complexity str
         
         self.divide_factor_detected = False # True if n//2 or slicing is found
+        
+        # Graph Display Suite
+        self.call_graph = {}           # {caller: [callee, ...]}
+        self.function_complexities = {}  # {func_name: time_complexity}
+        self.current_func = None
 
     def visit_For(self, node):
         self.loop_count += 1
@@ -86,6 +91,16 @@ class ComplexityAnalyzer(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         self.current_func = node.name
+        
+        # Func Graph calling
+        self.call_graph[self.current_func] = []
+
+        # Track function calls inside this function
+        for n in ast.walk(node):
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name):
+                callee = n.func.id
+                if callee != self.current_func:
+                    self.call_graph[self.current_func].append(callee)
 
         # NEW: Track function arguments as input variables
         for arg in node.args.args:
@@ -168,6 +183,8 @@ class ComplexityAnalyzer(ast.NodeVisitor):
             if self.recursive:
                 time_parts.append("recursion")
             time = "O(" + " ".join(time_parts) + ")" if time_parts else "O(1)"
+            
+        self.function_complexities[self.current_func] = time
 
         space = self._format_memory_size(space_bytes)
         return time, space
