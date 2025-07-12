@@ -9,7 +9,7 @@ def open_editor():
 
     bindings = KeyBindings()
 
-    @bindings.add("c-enter")
+    @bindings.add("f2")
     def _(event):
         event.app.exit(result=event.app.current_buffer.text)
 
@@ -19,7 +19,7 @@ def open_editor():
         event.app.exit(result=None)
 
     print("\nEnter your Python code below:")
-    print("Press Ctrl+Enter to analyze, Esc to cancel.\n")
+    print("Press F2 to analyze, Esc to cancel.\n")
 
     code = session.prompt(
         "> ",
