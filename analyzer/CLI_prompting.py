@@ -39,5 +39,14 @@ def analyze_code(code):
         print("\n📊 Complexity Report:")
         print(f"  ⏱️ Estimated Time Complexity: {time}")
         print(f"  🧠 Estimated Space Complexity: {space}")
+        
+        # Inline complexity annotation Suite:
+        print("\n📄 Complexity Annotated Code:")
+        lines = code.splitlines()
+        for i, line in enumerate(lines, start=1):
+            complexity = analyzer.line_complexities.get(i, "")
+            tag = f"  # {complexity}" if complexity else ""
+            print(f"{i:3} │ {line:<50}{tag}")
+            
     except Exception as e:
         print(f"\nError: {e}")
