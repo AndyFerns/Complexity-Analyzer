@@ -31,6 +31,9 @@ class ComplexityAnalyzer(ast.NodeVisitor):
         # Input variable tracking
         self.input_vars = set()
         
+        # Line complexity annotation Suite
+        self.line_complexities = {}  # Dict[line_no] = complexity str
+        
         self.divide_factor_detected = False # True if n//2 or slicing is found
 
     def visit_For(self, node):
@@ -39,6 +42,8 @@ class ComplexityAnalyzer(ast.NodeVisitor):
         # NEW: Nesting depth for nested loops
         self.nesting_depth += 1
         self.max_nesting = max(self.max_nesting, self.nesting_depth)
+        
+        self.line_complexities[node.lineno] = "O(n)"  # loop = linear
 
         # NEW: Try to detect range(n) dependency
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name):
@@ -55,7 +60,9 @@ class ComplexityAnalyzer(ast.NodeVisitor):
     def visit_While(self, node):
         self.loop_count += 1
         self.nesting_depth += 1
-        self.max_nesting = max(self.max_nesting, self.nesting_depth)
+        self.max_nesting = max(self.max_nesting, self.nesting_depth)\
+            
+        self.line_complexities[node.lineno] = "O(n)"  # loop = linear
 
         # NEW: Detect logarithmic patterns like n = n // 2
         assigns = [n for n in ast.walk(node) if isinstance(n, (ast.Assign, ast.AugAssign))]
@@ -102,6 +109,10 @@ class ComplexityAnalyzer(ast.NodeVisitor):
                 self.divide_factor_detected = True
 
         self.generic_visit(node)
+        
+        if self.recursive:
+            self.line_complexities[node.lineno] = f"O({self.recursive_calls}T(n/{'2' if self.divide_factor_detected else 'n'}) + ...)"
+
 
     def _format_memory_size(self, size_bytes):
         if size_bytes < 1024:
