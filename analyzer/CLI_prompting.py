@@ -3,6 +3,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
 from analyzer.parser import parse_code
 from analyzer.analyzer import ComplexityAnalyzer
+from analyzer.graph_visualizer import draw_call_graph
 
 def open_editor():
     session = PromptSession(multiline=True)
@@ -47,6 +48,10 @@ def analyze_code(code):
             complexity = analyzer.line_complexities.get(i, "")
             tag = f"  # {complexity}" if complexity else ""
             print(f"{i:3} │ {line:<50}{tag}")
+            
+        
+        # Draw graph
+        draw_call_graph(analyzer.call_graph, analyzer.function_complexities)
             
     except Exception as e:
         print(f"\nError: {e}")
