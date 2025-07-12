@@ -46,13 +46,30 @@ class ComplexityAnalyzer(ast.NodeVisitor):
             self.recursive = True
             
         self.generic_visit(node)
+        
+    def _format_memory_size(self, size_bytes):
+        if size_bytes < 1024:
+            return f"{size_bytes} B"
+        elif size_bytes < 1024 ** 2:
+            return f"{size_bytes / 1024:.2f} KB"
+        elif size_bytes < 1024 ** 3:
+            return f"{size_bytes / (1024 ** 2):.2f} MB"
+        else:
+            return f"{size_bytes / (1024 ** 3):.2f} GB"
 
     def analyze(self, tree):
         self.visit(tree)
         time = f"O(n^{self.loop_count})"
-        space = f"O({self.var_space + self.data_structures}) vars"
-        
         if self.recursive:
-            time += " + Recursion"
-            space += " + call stack"
+            time += " + recursion"
+
+        # Estimate space: base size of each variable/data structure
+        space_bytes = self.var_space * sys.getsizeof(0)  # Assume integers
+        space_bytes += self.data_structures * sys.getsizeof([])  # Assume empty lists
+
+        if self.recursive:
+            # Assume ~1KB stack frame per recursive call (rough)
+            space_bytes += 1024 * (self.loop_count + 1)
+
+        space = self._format_memory_size(space_bytes)
         return time, space
