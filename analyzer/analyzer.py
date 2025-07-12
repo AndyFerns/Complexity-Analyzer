@@ -4,7 +4,7 @@ import sys
 class ComplexityAnalyzer(ast.NodeVisitor):
     '''
     Main Class for analyzing given code complexity
-    
+
     Functions:\n
     visit_For(self, node)\n
     visit_While(self, node)\n
@@ -16,6 +16,7 @@ class ComplexityAnalyzer(ast.NodeVisitor):
         # Time Complexity suite
         self.loop_count = 0
         self.recursive = False
+        self.recursive_calls = 0 # Count of recursive calls inside function
         self.func_name = set()
 
         # NEW: Track loop nesting and pattern types
@@ -29,6 +30,8 @@ class ComplexityAnalyzer(ast.NodeVisitor):
 
         # Input variable tracking
         self.input_vars = set()
+        
+        self.divide_factor_detected = False # True if n//2 or slicing is found
 
     def visit_For(self, node):
         self.loop_count += 1
@@ -89,6 +92,14 @@ class ComplexityAnalyzer(ast.NodeVisitor):
             for n in ast.walk(node)
         ):
             self.recursive = True
+            self.recursive_calls += 1
+            
+        # Detect input division like n // 2 or slicing [:len()//2]
+        for n in ast.walk(node):
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.FloorDiv):
+                self.divide_factor_detected = True
+            if isinstance(n, ast.Subscript) and isinstance(n.slice, ast.Slice):
+                self.divide_factor_detected = True
 
         self.generic_visit(node)
 
@@ -129,8 +140,23 @@ class ComplexityAnalyzer(ast.NodeVisitor):
         space_bytes = self.var_space * sys.getsizeof(0)  # assume integers
         space_bytes += self.data_structures * sys.getsizeof([])  # assume empty lists
 
-        if self.recursive:
+        if self.recursive and self.recursive_calls >= 1 and self.divide_factor_detected:
+            # Classic divide-and-conquer
+            if self.recursive_calls == 2:
+                time = "O(n log n)"
+            elif self.recursive_calls == 1:
+                time = "O(log n)"
+            else:
+                time = f"O(n^{self.recursive_calls} log n)"
             space_bytes += 1024 * (self.loop_count + 1)  # assume ~1KB per stack frame
+        else:
+            if self.has_log_loop:
+                time_parts.append("log n")
+            for _ in range(self.max_nesting):
+                time_parts.append("n")
+            if self.recursive:
+                time_parts.append("recursion")
+            time = "O(" + " ".join(time_parts) + ")" if time_parts else "O(1)"
 
         space = self._format_memory_size(space_bytes)
         return time, space
