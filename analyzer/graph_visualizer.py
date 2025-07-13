@@ -21,15 +21,18 @@ def classify_complexity(complexity_str):
     
 def draw_call_graph(call_graph, complexities):
     G = nx.DiGraph()
-    node_colors = []
-
-    # Add nodes and edges
+    # Add all nodes and edges first
     for func, calls in call_graph.items():
-        complexity = complexities.get(func, "O(?)")
-        G.add_node(func, label=f"{func}\n{complexity}")
-        node_colors.append(classify_complexity(complexity))
+        G.add_node(func)
         for callee in calls:
+            G.add_node(callee)
             G.add_edge(func, callee)
+
+    # Now generate color list based on *all* G.nodes()
+    node_colors = []
+    for node in G.nodes():
+        complexity = complexities.get(node, "O(?)")
+        node_colors.append(classify_complexity(complexity))
 
     pos = nx.spring_layout(G, k=1.5)
 
