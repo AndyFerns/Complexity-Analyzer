@@ -1,6 +1,23 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
+def classify_complexity(complexity_str):
+    """
+    Classify complexity into color category
+    """
+    if "n^2" in complexity_str or "n*n" in complexity_str:
+        return "red"
+    elif "n log n" in complexity_str:
+        return "orange"
+    elif "n" in complexity_str and "log" not in complexity_str:
+        return "yellow"
+    elif "log n" in complexity_str:
+        return "blue"
+    elif "1" in complexity_str:
+        return "green"
+    else:
+        return "lightgray"
+    
 def draw_call_graph(call_graph, complexities):
     G = nx.DiGraph()
     
