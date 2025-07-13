@@ -3,7 +3,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
 from analyzer.parser import parse_code
 from analyzer.analyzer import ComplexityAnalyzer
-from analyzer.graph_visualizer import draw_call_graph
+from analyzer.graph_visualizer import draw_call_graph, plot_Tn_vs_n
 
 def open_editor():
     session = PromptSession(multiline=True)
@@ -52,6 +52,12 @@ def analyze_code(code):
         
         # Draw graph
         draw_call_graph(analyzer.call_graph, analyzer.function_complexities)
+        
+        # Plot T(n) vs n for top-level function (usually main or first function)
+        if analyzer.function_complexities:
+            entry_func = list(analyzer.function_complexities.keys())[0]
+            entry_complexity = analyzer.function_complexities[entry_func]
+            plot_Tn_vs_n(entry_complexity)
             
     except Exception as e:
         print(f"\nError: {e}")
