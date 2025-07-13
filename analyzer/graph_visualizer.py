@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
 
 def classify_complexity(complexity_str):
     """
@@ -40,5 +41,37 @@ def draw_call_graph(call_graph, complexities):
 
     plt.title("Function Call Graph with Complexities")
     plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+    
+def plot_Tn_vs_n(time_complexity: str):
+    """
+    Plots n vs T(n) curve based on symbolic time complexity
+    """
+    n = np.linspace(1, 1000, 1000)
+    T = np.ones_like(n)
+
+    time_complexity = time_complexity.lower()
+
+    if "log" in time_complexity:
+        T *= np.log2(n)
+    if "n^2" in time_complexity:
+        T *= n**2
+    elif "n log n" in time_complexity:
+        T *= n * np.log2(n)
+    elif "n" in time_complexity and "log" not in time_complexity:
+        T *= n
+    elif "1" in time_complexity:
+        T *= 1
+
+    color = classify_complexity(time_complexity)
+
+    plt.figure(figsize=(7, 4))
+    plt.plot(n, T, label=f"T(n) = {time_complexity}", color=color, linewidth=2)
+    plt.title("T(n) vs n")
+    plt.xlabel("n (Input Size)")
+    plt.ylabel("T(n)")
+    plt.grid(True)
+    plt.legend()
     plt.tight_layout()
     plt.show()
